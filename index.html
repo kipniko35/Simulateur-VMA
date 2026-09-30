@@ -491,6 +491,11 @@
                 <input type="number" id="VMA_saisie" placeholder="Ex: 17.5" step="0.1" min="5" max="30">
             </div>
 
+            <label class="checkbox-group" style="margin-bottom: 12px;">
+                <input type="checkbox" id="chk_debutant_vma">
+                <span>Je suis débutant ou encore peu à l'aise avec les séances VMA</span>
+            </label>
+
             <label class="checkbox-group">
                 <input type="checkbox" id="chk_unk_vma">
                 <span>Je ne connais pas ma VMA</span>
@@ -709,6 +714,7 @@
     const inputFcMax = document.getElementById('FC_MAX');
 
     const vmaInput = document.getElementById('VMA_saisie');
+    const chkDebutantVma = document.getElementById('chk_debutant_vma');
     const chkUnkVma = document.getElementById('chk_unk_vma');
     const estimationSection = document.getElementById('estimation_section');
     const raceSelect = document.getElementById('race_select');
@@ -908,7 +914,7 @@
         }
     }
 
-    // --- FORMATAGES ALLURE (min/km => m'ss) ---
+    // --- FORMATAGES ALLURE (min/km => m'ss si < 10min, mm'ss si > 9min) ---
     function formatPacePaceMinSec(speedKmH) {
         if (!speedKmH || speedKmH <= 0) return "--:--";
         const paceSeconds = 3600 / speedKmH;
@@ -1133,6 +1139,7 @@
         const modeFC = fcModeSelect.value;
         const FC_MAX = parseFloat(inputFcMax.value) || 0;
         const FC_REPOS = parseFloat(inputFcRepos.value) || 0;
+        const DEBUTANT_VMA = chkDebutantVma.checked;
 
         if (modeFC === 'none') {
             thFcCol.style.display = 'none';
@@ -1370,16 +1377,32 @@
 
         rowsHtml += `<tr><td colspan="${colSpanTotal}" class="row-seuil-header">Allure VMA (voir détail des allures au tableau suivant)</td></tr>`;
 
+        // PARAMÈTRES ET RENDU VMA SELON DEBUTANT_VMA
+        const vmaLongPctStr = DEBUTANT_VMA ? "85% - 90%" : "90% - 95%";
+        const vmaLongPaceStr = DEBUTANT_VMA ? formatPaceRange(90, 85) : formatPaceRange(95, 90);
+        const borderStyleVmaLong = (!DEBUTANT_VMA) ? 'style="border-bottom: none;"' : '';
+
         // VMA LONGUE
         rowsHtml += `<tr>
-            <td class="text-left"><strong>VMA Longue</strong></td>
-            <td class="text-left"><span class="text-rouge">Durée d’effort comprise entre 2’ et 4’</span></td>
-            <td><strong>90% - 95%</strong></td>
-            <td><span class="bg-rouge">${formatPaceRange(100, 95)}</span></td>`;
+            <td class="text-left" ${borderStyleVmaLong}><strong>VMA Longue</strong></td>
+            <td class="text-left" ${borderStyleVmaLong}><span class="text-rouge">Durée d’effort comprise entre 2’ et 4’</span></td>
+            <td ${borderStyleVmaLong}><strong>${vmaLongPctStr}</strong></td>
+            <td ${borderStyleVmaLong}><span class="bg-rouge">${vmaLongPaceStr}</span></td>`;
         if (modeFC !== 'none') {
-            rowsHtml += `<td rowspan="3" style="vertical-align: middle;"><strong>${vma_fc_val}</strong></td>`;
+            const rSpan = DEBUTANT_VMA ? 3 : 4;
+            rowsHtml += `<td rowspan="${rSpan}" style="vertical-align: middle;"><strong>${vma_fc_val}</strong></td>`;
         }
         rowsHtml += `</tr>`;
+
+        // MESSAGE D'AVERTISSEMENT SI DEBUTANT_VMA = NON
+        if (!DEBUTANT_VMA) {
+            rowsHtml += `<tr>
+                <td colspan="4" style="border-top: none; border-bottom: 1px solid var(--border); text-align: center; padding: 8px 12px; font-size: 0.88rem; color: #1e293b;">
+                    <em>Pour les débutants et les coureurs qui sont encore peu à l'aise avec les séances de VMA il est préférable de réduire les allures à tenir sur des durées comprises entre 2' et 4'.<br>
+                    Si vous êtes concerné, faites retour à la saisie et cochez la case prévue à cet effet</em> 😉
+                </td>
+            </tr>`;
+        }
 
         // VMA MOYENNE
         rowsHtml += `<tr>
@@ -1392,7 +1415,7 @@
         // VMA COURTE
         rowsHtml += `<tr>
             <td class="text-left"><strong>VMA Courte</strong></td>
-            <td class="text-left"><span class="text-noir">Durée d’effort inférieure à 1’</span></td>
+            <td class="text-left"><span class="text-noir">Durée d’effort inférieure à 1’10</span></td>
             <td><strong>100% - 110%</strong></td>
             <td><span class="bg-noir">${formatPaceRange(110, 100)}</span></td>
         </tr>`;
@@ -1413,47 +1436,72 @@
             return;
         }
 
+        const DEBUTANT_VMA = chkDebutantVma.checked;
         const ALL_TRACK_DISTANCES = [100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500];
 
-        function getSupportDurationSeconds(p) {
-            if (p <= 95) {
-                return 240 - (p - 90) * 24;
-            } else if (p <= 100) {
-                return 110 - (p - 96) * 10;
+        function getSupportDurationSeconds(p, isDebutant) {
+            if (isDebutant) {
+                if (p <= 90) {
+                    return 240 - (p - 85) * 24;
+                } else if (p <= 95) {
+                    return 120 - (p - 90) * 2;
+                } else if (p <= 100) {
+                    return 110 - (p - 96) * 10;
+                } else {
+                    return 60 - (p - 101) * 5;
+                }
             } else {
-                return 60 - (p - 101) * 5;
+                if (p <= 95) {
+                    return 240 - (p - 90) * 24;
+                } else if (p <= 100) {
+                    return 110 - (p - 96) * 10;
+                } else {
+                    return 60 - (p - 101) * 5;
+                }
             }
         }
 
         const selectedRows = [];
+        const startPct = DEBUTANT_VMA ? 85 : 90;
 
         ALL_TRACK_DISTANCES.forEach(d => {
-            let bestPct = null;
-            let minDiff = Infinity;
+            let longZoneMatches = [];
+            let allMatches = [];
 
-            for (let p = 90; p <= 110; p++) {
-                const dur = getSupportDurationSeconds(p);
+            for (let p = startPct; p <= 110; p++) {
+                const dur = getSupportDurationSeconds(p, DEBUTANT_VMA);
                 const speed = VMA_CALCUL * (p / 100);
                 const distRaw = speed * (dur / 3.6);
                 const distFloor = Math.floor(distRaw / 100) * 100;
 
                 if (distFloor === d) {
                     const diff = Math.abs(distRaw - d);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        bestPct = p;
+                    const match = { pct: p, diff: diff, speed: speed };
+                    allMatches.push(match);
+
+                    if (DEBUTANT_VMA && p >= 85 && p <= 90) {
+                        longZoneMatches.push(match);
                     }
                 }
             }
 
-            if (bestPct !== null) {
-                const speed = VMA_CALCUL * (bestPct / 100);
-                const timeForDistSec = (d * 3.6) / speed;
+            let chosenMatch = null;
+            // Gestion du conflit pour débutant : priorité stricte à la VMA Longue (85-90%)
+            if (DEBUTANT_VMA && longZoneMatches.length > 0) {
+                longZoneMatches.sort((a, b) => a.diff - b.diff);
+                chosenMatch = longZoneMatches[0];
+            } else if (allMatches.length > 0) {
+                allMatches.sort((a, b) => a.diff - b.diff);
+                chosenMatch = allMatches[0];
+            }
+
+            if (chosenMatch) {
+                const timeForDistSec = (d * 3.6) / chosenMatch.speed;
                 if (timeForDistSec <= 240) {
                     selectedRows.push({
                         dist: d,
-                        pct: bestPct,
-                        speed: speed
+                        pct: chosenMatch.pct,
+                        speed: chosenMatch.speed
                     });
                 }
             }
