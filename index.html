@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Allures de Course à Pied & VMA</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-body: #fefde8; /* Fond jaune très clair */
+            --card-bg: #ffffff;
+            --text-main: #000000; /* Police noire */
+            --text-muted: #4b5563;
+            --border: #e2e8f0;
+            --accent: #10b981;
+            --accent-bg: #ecfdf5;
+            --yellow-kalisport: #facc15; /* Jaune US Liffré Athlétisme */
+            --yellow-kalisport-hover: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        header h1 {
+            color: #000000;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            color: #000000;
+            margin-bottom: 0;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .accordion-header h2 {
+            transition: color 0.2s;
+        }
+
+        .accordion-arrow {
+            font-size: 1.2rem;
+            color: #000000;
+            transition: transform 0.3s ease, color 0.2s;
+            display: inline-block;
+        }
+
+        .accordion-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .accordion-header.active {
+            background-color: var(--yellow-kalisport);
+            color: #000000;
+        }
+
+        .accordion-header.active h2 {
+            color: #000000;
+        }
+
+        .accordion-header.active .accordion-arrow {
+            color: #000000;
+        }
+
+        .accordion-content {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .block-section {
+            background-color: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .block-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #000000;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: #fff;
+            color: #000000;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .ref-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ref-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ref-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 130px;
+            color: #000000;
+        }
+
+        .chrono-inputs-sm {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chrono-inputs-sm input {
+            width: 65px;
+            text-align: center;
+            padding: 6px 8px;
+        }
+
+        .chrono-inputs-sm .sep {
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            cursor: pointer;
+            user-select: none;
+            color: #000000;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .estimation-box {
+            background-color: #ffffff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            border-left-width: 4px;
+            display: none;
+        }
+
+        .summary-header {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--yellow-kalisport);
+            color: #000000;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .summary-header .vma-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--yellow-kalisport);
+            color: #000000;
+            font-weight: bold;
+            width: 100%;
+            border: 1px solid var(--yellow-kalisport-hover);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--yellow-kalisport-hover);
+            color: #000000;
+        }
+
+        .btn-secondary {
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #000000;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        /* BADGES ET COULEURS DE TEXTE */
+        .bg-vert { background-color: #16a34a; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .bg-bleu { background-color: #2563eb; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .bg-orange { background-color: #ea580c; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .bg-rouge { background-color: #dc2626; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .bg-bordeaux { background-color: #800020; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .bg-noir { background-color: #1e293b; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+
+        .text-vert { color: #16a34a; font-weight: bold; }
+        .text-bleu { color: #2563eb; font-weight: bold; }
+        .text-orange { color: #ea580c; font-weight: bold; }
+        .text-rouge { color: #dc2626; font-weight: bold; }
+        .text-bordeaux { color: #800020; font-weight: bold; }
+        .text-noir { color: #1e293b; font-weight: bold; }
+
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .sim-result {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .sim-result-val {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .ie-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        .ie-info ul {
+            margin-left: 20px;
+            margin-top: 6px;
+        }
+
+        .note-box {
+            background-color: #fffbe0;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            font-size: 0.88rem;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        .note-box strong {
+            color: #b45309;
+        }
+
+        .row-seuil-header {
+            background-color: #e2e8f0;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1rem;
+            color: #000000;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .card { padding: 15px; }
+            th, td { padding: 8px 6px; font-size: 0.8rem; }
+            .summary-header { flex-direction: column; gap: 10px; text-align: center; }
+            .ref-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Calculateur d'Allures & VMA</h1>
+        <p>Déterminez vos allures d'entraînement en fonction de votre VMA, vos FC et chronos de référence</p>
+    </header>
+
+    <div id="summary_bar" class="summary-header">
+        <div class="vma-display" id="summary_vma_text">VMA = -- km/h</div>
+        <button id="btn_edit" class="btn btn-secondary">Retour à la saisie</button>
+    </div>
+
+    <!-- 1. PROFIL COUREUR -->
+    <div id="section_1" class="card">
+        <h2 style="margin-bottom: 15px; color: #000000;">1. Profil coureur</h2>
+
+        <!-- BLOC 1 : MES DONNÉES DE FRÉQUENCE CARDIAQUE -->
+        <div class="block-section">
+            <div class="block-title">Bloc 1 : Mes données de fréquence cardiaque</div>
+            
+            <div class="form-group">
+                <label for="fc_mode_select">Intégration de la fréquence cardiaque :</label>
+                <select id="fc_mode_select">
+                    <option value="none" selected>Je ne souhaite pas intégrer ma fréquence cardiaque dans mes zones d’allures</option>
+                    <option value="fc_max">Utiliser ma Fréquence Cardiaque Maximale</option>
+                    <option value="fc_reserve">Utiliser ma Fréquence cardiaque de Réserve</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="group_fc_repos" style="display: none;">
+                <label for="FC_REPOS">FC au repos (bpm) :</label>
+                <input type="number" id="FC_REPOS" placeholder="Ex: 50" min="30" max="120">
+            </div>
+
+            <div class="form-group" id="group_fc_max" style="display: none;">
+                <label for="FC_MAX">FC maximale (bpm) :</label>
+                <input type="number" id="FC_MAX" placeholder="Ex: 185" min="100" max="230">
+            </div>
+        </div>
+
+        <!-- BLOC 2 : MES CHRONOS DE RÉFÉRENCE -->
+        <div class="block-section">
+            <div class="block-title">Bloc 2 : Mes chronos de référence (chronos significatifs avec ma forme actuelle)</div>
+            <div class="ref-grid">
+                <div class="ref-row">
+                    <span class="ref-label">5 kms :</span>
+                    <div class="chrono-inputs-sm">
+                        <input type="number" id="ref_5k_mm" min="0" max="59" placeholder="mm">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_5k_ss" min="0" max="59" placeholder="ss">
+                    </div>
+                </div>
+
+                <div class="ref-row">
+                    <span class="ref-label">10 kms :</span>
+                    <div class="chrono-inputs-sm">
+                        <input type="number" id="ref_10k_hh" min="0" max="10" placeholder="hh">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_10k_mm" min="0" max="59" placeholder="mm">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_10k_ss" min="0" max="59" placeholder="ss">
+                    </div>
+                </div>
+
+                <div class="ref-row">
+                    <span class="ref-label">Semi-marathon :</span>
+                    <div class="chrono-inputs-sm">
+                        <input type="number" id="ref_semi_hh" min="0" max="10" placeholder="hh">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_semi_mm" min="0" max="59" placeholder="mm">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_semi_ss" min="0" max="59" placeholder="ss">
+                    </div>
+                </div>
+
+                <div class="ref-row">
+                    <span class="ref-label">Marathon :</span>
+                    <div class="chrono-inputs-sm">
+                        <input type="number" id="ref_marathon_hh" min="0" max="10" placeholder="hh">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_marathon_mm" min="0" max="59" placeholder="mm">
+                        <span class="sep">:</span>
+                        <input type="number" id="ref_marathon_ss" min="0" max="59" placeholder="ss">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOC 3 : MES DONNÉES DE VMA -->
+        <div class="block-section">
+            <div class="block-title">Bloc 3 : Mes données de VMA</div>
+            <div class="form-group">
+                <label for="VMA_saisie">Votre VMA (en km/h) :</label>
+                <input type="number" id="VMA_saisie" placeholder="Ex: 17.5" step="0.1" min="5" max="30">
+            </div>
+
+            <label class="checkbox-group">
+                <input type="checkbox" id="chk_unk_vma">
+                <span>Je ne connais pas ma VMA</span>
+            </label>
+
+            <div id="estimation_section" class="estimation-box">
+                <h3 style="font-size: 0.95rem; margin-bottom: 12px; color: #000000;">Estimer ma VMA selon une course :</h3>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="race_select">Sélectionnez votre course de référence :</label>
+                    <select id="race_select">
+                        <option value="5k">5 kms</option>
+                        <option value="10k" selected>10 kms</option>
+                        <option value="semi">Semi-marathon</option>
+                        <option value="marathon">Marathon</option>
+                    </select>
+                </div>
+                <div id="estimation_output"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px;">
+            <button id="btn_calculate" class="btn btn-primary">Calculer mes allures d'entraînement</button>
+        </div>
+    </div>
+
+    <!-- WRAPPER DES RÉSULTATS -->
+    <div id="results_container" style="display: none;">
+        
+        <!-- TABLEAU INDICE D'ENDURANCE (IE) - MENU ACCORDION -->
+        <div class="card">
+            <div class="accordion-header" id="hdr_ie" onclick="toggleAccordion('acc_ie', 'arrow_ie', 'hdr_ie')">
+                <h2>Indice d'Endurance (IE)</h2>
+                <span class="accordion-arrow" id="arrow_ie">&#9660;</span>
+            </div>
+            <div class="accordion-content" id="acc_ie" style="display: none;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="text-left">Épreuve</th>
+                                <th>Chrono renseigné</th>
+                                <th>Vitesse moyenne</th>
+                                <th>% VMA soutenu</th>
+                                <th>Indice d'Endurance (IE)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl_ie_body"></tbody>
+                    </table>
+                </div>
+
+                <div class="ie-info" id="ie_diagnostic"></div>
+            </div>
+        </div>
+
+        <!-- TABLEAU ZONES D'ENTRAÎNEMENT - MENU ACCORDION -->
+        <div class="card">
+            <div class="accordion-header" id="hdr_zones" onclick="toggleAccordion('acc_zones', 'arrow_zones', 'hdr_zones')">
+                <h2>Zones d'Entraînement</h2>
+                <span class="accordion-arrow" id="arrow_zones">&#9660;</span>
+            </div>
+            <div class="accordion-content" id="acc_zones" style="display: none;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Zone</th>
+                                <th>Type de séance</th>
+                                <th>% VMA</th>
+                                <th>Allure cible (min/km)</th>
+                                <th id="th_fc_col">FC Cible (bpm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl_zones_body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLEAU DES ALLURES À VMA - MENU ACCORDION -->
+        <div class="card">
+            <div class="accordion-header" id="hdr_vma" onclick="toggleAccordion('acc_vma', 'arrow_vma', 'hdr_vma')">
+                <h2>Tableau des allures à VMA</h2>
+                <span class="accordion-arrow" id="arrow_vma">&#9660;</span>
+            </div>
+            <div class="accordion-content" id="acc_vma" style="display: none;">
+                <div class="table-responsive">
+                    <table>
+                        <thead id="tbl_intervals_head"></thead>
+                        <tbody id="tbl_intervals_body"></tbody>
+                    </table>
+                </div>
+
+                <div class="note-box">
+                    <strong>⚠️ Important !</strong><br>
+                    Ces allures correspondent aux allures indicatives calculées à partir des renseignements fournis.<br>
+                    Elles doivent être adaptées en cas de méforme par rapport au test initial ou chronos renseignés (reprise post coupure, post blessure, maladie ou fatigue).<br>
+                    De même, il s’agit des allures pour les séances de VMA. En cas de préparation spécifique (notamment Marathon et Semi-Marathon), il convient d’adapter les allures au volume de la séance.<br>
+                    Vous pouvez pour cela utiliser le tableau Intervalles sur mesure
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERVALLES SUR MESURE - MENU ACCORDION -->
+        <div class="card">
+            <div class="accordion-header" id="hdr_intervalles" onclick="toggleAccordion('acc_intervalles', 'arrow_intervalles', 'hdr_intervalles')">
+                <h2>Intervalles sur Mesure</h2>
+                <span class="accordion-arrow" id="arrow_intervalles">&#9660;</span>
+            </div>
+            <div class="accordion-content" id="acc_intervalles" style="display: none;">
+                <div class="block-section">
+                    <div class="block-title" style="font-size: 1.1rem; margin-bottom: 15px;">Mon Objectif</div>
+                    
+                    <div class="form-group">
+                        <label for="custom_course_select">Course :</label>
+                        <select id="custom_course_select">
+                            <option value="5k">5 kilomètres</option>
+                            <option value="10k" selected>10 kilomètres</option>
+                            <option value="semi">Semi-Marathon</option>
+                            <option value="marathon">Marathon</option>
+                        </select>
+                    </div>
+
+                    <div class="simulator-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                        <div class="form-group">
+                            <label>Chrono visé (hh:mm:ss) :</label>
+                            <div class="chrono-inputs-sm">
+                                <input type="number" id="custom_chrono_hh" min="0" max="99" placeholder="hh">
+                                <span class="sep">:</span>
+                                <input type="number" id="custom_chrono_mm" min="0" max="59" placeholder="mm">
+                                <span class="sep">:</span>
+                                <input type="number" id="custom_chrono_ss" min="0" max="59" placeholder="ss">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Allure (mm:ss /km) :</label>
+                            <div class="chrono-inputs-sm">
+                                <input type="number" id="custom_pace_mm" min="0" max="59" placeholder="mm">
+                                <span class="sep">:</span>
+                                <input type="number" id="custom_pace_ss" min="0" max="59" placeholder="ss">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="custom_speed_display" style="font-weight: 700; color: var(--primary); margin-top: 10px; font-size: 0.95rem;">
+                        Vitesse correspondante : -- km/h
+                    </div>
+                </div>
+
+                <div class="block-section" style="margin-bottom: 0;">
+                    <div class="form-group">
+                        <label for="custom_interval_type">Type d'intervalles :</label>
+                        <select id="custom_interval_type">
+                            <option value="duree" selected>Durée</option>
+                            <option value="distance">Distance</option>
+                        </select>
+                    </div>
+
+                    <div class="simulator-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="form-group" id="group_interval_duree">
+                            <label>Durée des intervalles (mm:ss) :</label>
+                            <div class="chrono-inputs-sm">
+                                <input type="number" id="inter_duree_mm" min="0" max="59" placeholder="mm">
+                                <span class="sep">:</span>
+                                <input type="number" id="inter_duree_ss" min="0" max="59" placeholder="ss">
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="group_interval_distance" style="display: none;">
+                            <label for="inter_dist_m">Distance des intervalles (mètres) :</label>
+                            <input type="number" id="inter_dist_m" placeholder="Ex: 400" min="10" step="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label id="pct_label_title" for="custom_pct_select">% de mon allure 10 kilomètres :</label>
+                            <select id="custom_pct_select">
+                                <option value="" selected>Choisir...</option>
+                                <option value="95">95%</option>
+                                <option value="96">96%</option>
+                                <option value="97">97%</option>
+                                <option value="98">98%</option>
+                                <option value="99">99%</option>
+                                <option value="100">100%</option>
+                                <option value="101">101%</option>
+                                <option value="102">102%</option>
+                                <option value="103">103%</option>
+                                <option value="104">104%</option>
+                                <option value="105">105%</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="simulator-grid" style="margin-top: 15px;">
+                        <div class="sim-result">
+                            <span>Allure moyenne</span>
+                            <div class="sim-result-val" id="custom_res_pace">--:--</div>
+                        </div>
+                        <div class="sim-result">
+                            <span id="custom_res_est_label">Distance estimée</span>
+                            <div class="sim-result-val" id="custom_res_est">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- ÉLÉMENTS DU DOM ---
+    const fcModeSelect = document.getElementById('fc_mode_select');
+    const groupFcRepos = document.getElementById('group_fc_repos');
+    const groupFcMax = document.getElementById('group_fc_max');
+    const inputFcRepos = document.getElementById('FC_REPOS');
+    const inputFcMax = document.getElementById('FC_MAX');
+
+    const vmaInput = document.getElementById('VMA_saisie');
+    const chkUnkVma = document.getElementById('chk_unk_vma');
+    const estimationSection = document.getElementById('estimation_section');
+    const raceSelect = document.getElementById('race_select');
+    const estimationOutput = document.getElementById('estimation_output');
+
+    const section1 = document.getElementById('section_1');
+    const summaryBar = document.getElementById('summary_bar');
+    const summaryVmaText = document.getElementById('summary_vma_text');
+    const resultsContainer = document.getElementById('results_container');
+
+    const btnCalculate = document.getElementById('btn_calculate');
+    const btnEdit = document.getElementById('btn_edit');
+
+    const tblIeBody = document.getElementById('tbl_ie_body');
+    const ieDiagnostic = document.getElementById('ie_diagnostic');
+    const tblZonesBody = document.getElementById('tbl_zones_body');
+    const thFcCol = document.getElementById('th_fc_col');
+    const tblIntervalsHead = document.getElementById('tbl_intervals_head');
+    const tblIntervalsBody = document.getElementById('tbl_intervals_body');
+
+    // ÉLÉMENTS INTERVALLES SUR MESURE
+    const customCourseSelect = document.getElementById('custom_course_select');
+    const customChronoHh = document.getElementById('custom_chrono_hh');
+    const customChronoMm = document.getElementById('custom_chrono_mm');
+    const customChronoSs = document.getElementById('custom_chrono_ss');
+
+    const customPaceMm = document.getElementById('custom_pace_mm');
+    const customPaceSs = document.getElementById('custom_pace_ss');
+
+    const customSpeedDisplay = document.getElementById('custom_speed_display');
+
+    const customIntervalType = document.getElementById('custom_interval_type');
+    const groupIntervalDuree = document.getElementById('group_interval_duree');
+    const groupIntervalDistance = document.getElementById('group_interval_distance');
+
+    const interDureeMm = document.getElementById('inter_duree_mm');
+    const interDureeSs = document.getElementById('inter_duree_ss');
+    const interDistM = document.getElementById('inter_dist_m');
+
+    const pctLabelTitle = document.getElementById('pct_label_title');
+    const customPctSelect = document.getElementById('custom_pct_select');
+
+    const customResPace = document.getElementById('custom_res_pace');
+    const customResEst = document.getElementById('custom_res_est');
+    const customResEstLabel = document.getElementById('custom_res_est_label');
+
+    const refInputs = [
+        'ref_5k_mm', 'ref_5k_ss',
+        'ref_10k_hh', 'ref_10k_mm', 'ref_10k_ss',
+        'ref_semi_hh', 'ref_semi_mm', 'ref_semi_ss',
+        'ref_marathon_hh', 'ref_marathon_mm', 'ref_marathon_ss'
+    ];
+
+    let VMA_CALCUL = 0;
+    let currentBaseSpeedKmH = 0;
+
+    // --- GESTION ACCORDIONS ---
+    function toggleAccordion(contentId, arrowId, headerId) {
+        const content = document.getElementById(contentId);
+        const arrow = document.getElementById(arrowId);
+        const header = document.getElementById(headerId);
+
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            arrow.classList.add('open');
+            if (header) header.classList.add('active');
+        } else {
+            content.style.display = 'none';
+            arrow.classList.remove('open');
+            if (header) header.classList.remove('active');
+        }
+    }
+
+    function updateFcFieldsVisibility() {
+        const mode = fcModeSelect.value;
+        if (mode === 'none') {
+            groupFcRepos.style.display = 'none';
+            groupFcMax.style.display = 'none';
+        } else if (mode === 'fc_max') {
+            groupFcRepos.style.display = 'none';
+            groupFcMax.style.display = 'block';
+        } else if (mode === 'fc_reserve') {
+            groupFcRepos.style.display = 'block';
+            groupFcMax.style.display = 'block';
+        }
+    }
+    fcModeSelect.addEventListener('change', updateFcFieldsVisibility);
+
+    function getChronoMinutes(raceKey) {
+        let hh = 0, mm = 0, ss = 0;
+        if (raceKey === '5k') {
+            mm = parseFloat(document.getElementById('ref_5k_mm').value) || 0;
+            ss = parseFloat(document.getElementById('ref_5k_ss').value) || 0;
+        } else if (raceKey === '10k') {
+            hh = parseFloat(document.getElementById('ref_10k_hh').value) || 0;
+            mm = parseFloat(document.getElementById('ref_10k_mm').value) || 0;
+            ss = parseFloat(document.getElementById('ref_10k_ss').value) || 0;
+        } else if (raceKey === 'semi') {
+            hh = parseFloat(document.getElementById('ref_semi_hh').value) || 0;
+            mm = parseFloat(document.getElementById('ref_semi_mm').value) || 0;
+            ss = parseFloat(document.getElementById('ref_semi_ss').value) || 0;
+        } else if (raceKey === 'marathon') {
+            hh = parseFloat(document.getElementById('ref_marathon_hh').value) || 0;
+            mm = parseFloat(document.getElementById('ref_marathon_mm').value) || 0;
+            ss = parseFloat(document.getElementById('ref_marathon_ss').value) || 0;
+        }
+        return (hh * 60) + mm + (ss / 60);
+    }
+
+    function calculateEstimatedVMA() {
+        const chrono_saisi = getChronoMinutes(raceSelect.value);
+        if (chrono_saisi <= 0) return null;
+
+        const race = raceSelect.value;
+        let pct_VMA = 0;
+        let distance = 0;
+        let niveau = "";
+
+        if (race === '5k') {
+            distance = 5.00;
+            if (chrono_saisi >= 32.00) { pct_VMA = 82.00; niveau = "Débutant"; }
+            else if (chrono_saisi >= 27.00) { pct_VMA = 82 + ((85 - 82) * (32 - chrono_saisi) / 5); niveau = "Loisir"; }
+            else if (chrono_saisi >= 22.00) { pct_VMA = 85 + ((89 - 85) * (27 - chrono_saisi) / 5); niveau = "Amateur"; }
+            else if (chrono_saisi >= 17.00) { pct_VMA = 89 + ((93 - 89) * (22 - chrono_saisi) / 5); niveau = "Régional"; }
+            else if (chrono_saisi >= 15.00) { pct_VMA = 93 + ((96 - 93) * (17 - chrono_saisi) / 2); niveau = "Élite"; }
+            else { pct_VMA = 96.00; niveau = "Élite"; }
+        } else if (race === '10k') {
+            distance = 10.00;
+            if (chrono_saisi >= 65.00) { pct_VMA = 75.00; niveau = "Débutant"; }
+            else if (chrono_saisi >= 55.00) { pct_VMA = 75 + ((78 - 75) * (65 - chrono_saisi) / 10); niveau = "Loisir"; }
+            else if (chrono_saisi >= 45.00) { pct_VMA = 78 + ((83 - 78) * (55 - chrono_saisi) / 10); niveau = "Amateur"; }
+            else if (chrono_saisi >= 35.00) { pct_VMA = 83 + ((88 - 83) * (45 - chrono_saisi) / 10); niveau = "Régional"; }
+            else if (chrono_saisi >= 30.00) { pct_VMA = 88 + ((92 - 88) * (35 - chrono_saisi) / 5); niveau = "Élite"; }
+            else { pct_VMA = 92.00; niveau = "Élite"; }
+        } else if (race === 'semi') {
+            distance = 21.0975;
+            if (chrono_saisi >= 135.00) { pct_VMA = 70.00; niveau = "Débutant"; }
+            else if (chrono_saisi >= 115.00) { pct_VMA = 70 + ((75 - 70) * (135 - chrono_saisi) / 20); niveau = "Loisir"; }
+            else if (chrono_saisi >= 95.00) { pct_VMA = 75 + ((80 - 75) * (115 - chrono_saisi) / 20); niveau = "Amateur"; }
+            else if (chrono_saisi >= 75.00) { pct_VMA = 80 + ((85 - 80) * (95 - chrono_saisi) / 20); niveau = "Régional"; }
+            else if (chrono_saisi >= 62.00) { pct_VMA = 85 + ((90 - 85) * (75 - chrono_saisi) / 13); niveau = "Élite"; }
+            else { pct_VMA = 90.00; niveau = "Élite"; }
+        } else if (race === 'marathon') {
+            distance = 42.195;
+            if (chrono_saisi >= 270.00) { pct_VMA = 65.00; niveau = "Débutant"; }
+            else if (chrono_saisi >= 225.00) { pct_VMA = 65 + ((70 - 65) * (270 - chrono_saisi) / 45); niveau = "Loisir"; }
+            else if (chrono_saisi >= 190.00) { pct_VMA = 70 + ((75 - 70) * (225 - chrono_saisi) / 35); niveau = "Amateur"; }
+            else if (chrono_saisi >= 155.00) { pct_VMA = 75 + ((80 - 75) * (190 - chrono_saisi) / 35); niveau = "Régional"; }
+            else if (chrono_saisi >= 125.00) { pct_VMA = 80 + ((85 - 80) * (155 - chrono_saisi) / 30); niveau = "Élite"; }
+            else { pct_VMA = 85.00; niveau = "Élite"; }
+        }
+
+        const vma_theorique = ((distance * 60) / chrono_saisi) / (pct_VMA / 100);
+        return { vma: vma_theorique, pctVma: pct_VMA, niveau: niveau };
+    }
+
+    function updateEstimationPreview() {
+        if (chkUnkVma.checked && estimationSection.style.display !== 'none') {
+            const res = calculateEstimatedVMA();
+            if (res && res.vma && !isNaN(res.vma)) {
+                estimationOutput.innerHTML = `
+                    <div style="margin-top: 12px; padding: 10px; background: #ffffff; border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 1rem; color: var(--primary); font-weight: 700;">
+                            VMA Théorique : ${res.vma.toFixed(1)} km/h
+                        </div>
+                        <div style="font-size: 0.9rem; margin-top: 4px; color: #000000;">
+                            Niveau estimé : <strong>${res.niveau}</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            Soutien estimé sur l'épreuve : ${res.pctVma.toFixed(1)}% de VMA
+                        </div>
+                    </div>
+                `;
+            } else {
+                estimationOutput.innerHTML = `
+                    <div style="color: #dc2626; margin-top: 8px; font-size: 0.85rem;">
+                        Veuillez renseigner un chrono valide pour la course sélectionnée ci-dessus.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function computeVmaCalcul() {
+        const isEstimationVisible = (estimationSection.style.display !== 'none' && chkUnkVma.checked);
+        const resTheorique = isEstimationVisible ? calculateEstimatedVMA() : null;
+
+        if (isEstimationVisible && resTheorique && resTheorique.vma && !isNaN(resTheorique.vma) && resTheorique.vma > 0) {
+            VMA_CALCUL = Math.round(resTheorique.vma * 10) / 10;
+        } else {
+            let val = parseFloat(vmaInput.value.replace(',', '.'));
+            if (isNaN(val) || val <= 0) {
+                VMA_CALCUL = 0;
+            } else {
+                VMA_CALCUL = Math.round(val * 10) / 10;
+            }
+        }
+    }
+
+    // --- FORMATAGES ALLURE (min/km => m'ss) ---
+    function formatPacePaceMinSec(speedKmH) {
+        if (!speedKmH || speedKmH <= 0) return "--:--";
+        const paceSeconds = 3600 / speedKmH;
+        let min = Math.floor(paceSeconds / 60);
+        let sec = Math.round(paceSeconds % 60);
+        if (sec >= 60) { min += 1; sec = 0; }
+        const minStr = `${min}`;
+        const secStr = sec < 10 ? `0${sec}` : `${sec}`;
+        return `${minStr}'${secStr}`;
+    }
+
+    function formatPace(speedKmH) {
+        if (!speedKmH || speedKmH <= 0) return "--:--";
+        return `${formatPacePaceMinSec(speedKmH)}"/km`;
+    }
+
+    function formatPaceRange(pctFast, pctSlow) {
+        if (VMA_CALCUL <= 0) return "--:--";
+        const speedFast = VMA_CALCUL * (pctFast / 100);
+        const speedSlow = VMA_CALCUL * (pctSlow / 100);
+        return `${formatPacePaceMinSec(speedFast)} ~ ${formatPacePaceMinSec(speedSlow)}`;
+    }
+
+    function formatSplitTime(secTotal) {
+        const totalSec = Math.floor(secTotal);
+        const min = Math.floor(totalSec / 60);
+        const sec = totalSec % 60;
+        const secStr = sec < 10 ? '0' + sec : '' + sec;
+        if (min > 0) {
+            return `${min}'${secStr}`;
+        } else {
+            return `${sec}"`;
+        }
+    }
+
+    function formatChronoDisplay(timeMinutes) {
+        let totalSec = Math.round(timeMinutes * 60);
+        let hrs = Math.floor(totalSec / 3600);
+        let min = Math.floor((totalSec % 3600) / 60);
+        let sec = totalSec % 60;
+        let secStr = sec < 10 ? '0' + sec : sec;
+
+        if (hrs > 0) {
+            let minStr = min < 10 ? '0' + min : min;
+            return `${hrs}h ${minStr}m ${secStr}s`;
+        } else {
+            return `${min}m ${secStr}s`;
+        }
+    }
+
+    // --- CALCULS DE L'INDICE D'ENDURANCE ET MOYENNE ---
+    let IE_5K = null, IE_10K = null, IE_21K = null, IE_42K = null, IE_MOYEN = null;
+
+    function computeIEValues() {
+        IE_5K = null; IE_10K = null; IE_21K = null; IE_42K = null; IE_MOYEN = null;
+
+        const races = [
+            { key: '5k', dist: 5.0 },
+            { key: '10k', dist: 10.0 },
+            { key: 'semi', dist: 21.0975 },
+            { key: 'marathon', dist: 42.195 }
+        ];
+
+        const validIEs = [];
+
+        races.forEach(r => {
+            const timeMin = getChronoMinutes(r.key);
+            if (timeMin > 6 && VMA_CALCUL > 0) {
+                const speed = (r.dist * 60) / timeMin;
+                const pctVma = (speed / VMA_CALCUL) * 100;
+                const ieVal = (pctVma - 100) / Math.log(timeMin / 6);
+                
+                if (r.key === '5k') IE_5K = ieVal;
+                if (r.key === '10k') IE_10K = ieVal;
+                if (r.key === 'semi') IE_21K = ieVal;
+                if (r.key === 'marathon') IE_42K = ieVal;
+
+                validIEs.push(ieVal);
+            }
+        });
+
+        if (validIEs.length > 0) {
+            const sum = validIEs.reduce((a, b) => a + b, 0);
+            IE_MOYEN = sum / validIEs.length;
+        } else {
+            IE_MOYEN = null;
+        }
+    }
+
+    function renderIETable() {
+        const races = [
+            { key: '5k', label: '5 kms', dist: 5.0, val: IE_5K },
+            { key: '10k', label: '10 kms', dist: 10.0, val: IE_10K },
+            { key: 'semi', label: 'Semi-marathon', dist: 21.0975, val: IE_21K },
+            { key: 'marathon', label: 'Marathon', dist: 42.195, val: IE_42K }
+        ];
+
+        let html = "";
+        let countValid = 0;
+
+        races.forEach(r => {
+            const timeMinutes = getChronoMinutes(r.key);
+            if (timeMinutes > 6 && VMA_CALCUL > 0 && r.val !== null) {
+                countValid++;
+                const speed = (r.dist * 60) / timeMinutes;
+                const pctVma = (speed / VMA_CALCUL) * 100;
+
+                html += `
+                    <tr>
+                        <td class="text-left"><strong>${r.label}</strong></td>
+                        <td>${formatChronoDisplay(timeMinutes)}</td>
+                        <td>${speed.toFixed(2)} km/h</td>
+                        <td>${pctVma.toFixed(1)}%</td>
+                        <td><strong>${r.val.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            }
+        });
+
+        if (countValid === 0) {
+            html = `<tr><td colspan="5" style="color: var(--text-muted); font-style: italic;">Renseignez au moins un chrono de référence (> 6 min) et votre VMA pour afficher votre Indice d'Endurance.</td></tr>`;
+        } else if (IE_MOYEN !== null) {
+            html += `
+                <tr style="background-color: #f1f5f9; font-weight: bold;">
+                    <td class="text-left" colspan="4">Indice d'Endurance Moyen (IE_MOYEN)</td>
+                    <td>${IE_MOYEN.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        tblIeBody.innerHTML = html;
+        renderIEDiagnostic();
+    }
+
+    function renderIEDiagnostic() {
+        if (IE_MOYEN === null) {
+            ieDiagnostic.style.display = 'none';
+            return;
+        }
+
+        ieDiagnostic.style.display = 'block';
+        let level = "";
+        let isPlural = true;
+        let items = [];
+
+        if (IE_MOYEN > -5) {
+            level = "Excellente endurance";
+            isPlural = true;
+            items = [
+                "Développer la VMA",
+                "Renforcement musculaire / Côte",
+                "Travail de l'économie de course"
+            ];
+        } else if (IE_MOYEN >= -7) {
+            level = "Bonne endurance";
+            isPlural = false;
+            items = [
+                "Optimisation globale : Continuer le mix classique (VMA + Seuil + Endurance fondamentale).",
+                "Travail des variations d'allure : Séances de type Fartlek pour casser la monotonie et stimuler le cœur.",
+                "Spécificité : Cibler l'allure exacte de votre objectif majeur (AS10, AS21 ou AS42)."
+            ];
+        } else if (IE_MOYEN >= -9) {
+            level = "Endurance moyenne";
+            isPlural = false;
+            items = [
+                "Développer le Seuil anaérobie : Blocs longs à allure SV2 (ex: 3x2000m ou 2x15 min).",
+                "Augmenter le volume global : Allonger légèrement les footings en endurance fondamentale.",
+                "Séance de VMA longue"
+            ];
+        } else if (IE_MOYEN >= -11) {
+            level = "Endurance faible";
+            isPlural = true;
+            items = [
+                "Augmenter l'Endurance Fondamentale (EF) : Courir lentement (60-70% VMA) sur 80% de votre volume global.",
+                "Sortie longue à intensité basse.",
+                "Tempo « doux » : Intégrer de l'allure marathon"
+            ];
+        } else {
+            level = "Endurance très faible";
+            isPlural = true;
+            items = [
+                "Priorité absolue au volume bas : Accumuler les kilomètres à basse intensité (allure < SV1).",
+                "VMA courte… non nécessaire à la progression : Préférer ajouter une séance de footing lent supplémentaire dans la semaine plutôt que de durcir les séances existantes",
+                "Régularité et progressivité"
+            ];
+        }
+
+        let html = `
+            <div style="font-size: 1.05rem; font-weight: 700; color: #000; margin-bottom: 8px;">
+                ${level}
+            </div>
+            <div style="font-weight: 600; margin-bottom: 6px; color: #000;">
+                Axe${isPlural ? 's' : ''} de progression :
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.6; color: #1e293b;">
+        `;
+
+        items.forEach(item => {
+            html += `<li>${item}</li>`;
+        });
+
+        html += `</ul>`;
+        ieDiagnostic.innerHTML = html;
+    }
+
+    function calcMinMaxFromPct(rawVal) {
+        const valPct = rawVal * 100;
+        const roundedPct = Math.round(valPct);
+        let minPct, maxPct;
+        if (roundedPct >= valPct) {
+            maxPct = roundedPct + 2;
+            minPct = roundedPct - 3;
+        } else {
+            maxPct = roundedPct + 3;
+            minPct = roundedPct - 2;
+        }
+        return { minPct, maxPct };
+    }
+
+    // --- RENDU DU TABLEAU DES ZONES D'ENTRAÎNEMENT ---
+    function renderZonesTable() {
+        const modeFC = fcModeSelect.value;
+        const FC_MAX = parseFloat(inputFcMax.value) || 0;
+        const FC_REPOS = parseFloat(inputFcRepos.value) || 0;
+
+        if (modeFC === 'none') {
+            thFcCol.style.display = 'none';
+        } else {
+            thFcCol.style.display = '';
+        }
+
+        let EF_FC_MAX_1 = 0, EF_FC_MAX_2 = 0, AS42_FC_MAX_1 = 0, AS42_FC_MAX_2 = 0;
+        let AS21_FC_MAX_1 = 0, AS21_FC_MAX_2 = 0, AS10_FC_MAX_1 = 0, AS10_FC_MAX_2 = 0;
+        let AS5_FC_MAX_1 = 0, AS5_FC_MAX_2 = 0, VMA_FC_MAX = 0;
+        let SV1_FC_MAX_1 = 0, SV1_FC_MAX_2 = 0, SV2_FC_MAX_1 = 0, SV2_FC_MAX_2 = 0;
+
+        if (modeFC === 'fc_max' && FC_MAX > 0) {
+            EF_FC_MAX_1 = Math.floor(FC_MAX * 0.65);
+            EF_FC_MAX_2 = Math.round(FC_MAX * 0.75);
+            AS42_FC_MAX_1 = Math.round(FC_MAX * 0.80);
+            AS42_FC_MAX_2 = Math.round(FC_MAX * 0.85);
+            AS21_FC_MAX_1 = 1 + AS42_FC_MAX_2;
+            AS21_FC_MAX_2 = Math.round(FC_MAX * 0.90);
+            AS10_FC_MAX_1 = 1 + AS21_FC_MAX_2;
+            AS10_FC_MAX_2 = Math.round(FC_MAX * 0.94);
+            AS5_FC_MAX_1 = 1 + AS10_FC_MAX_2;
+            AS5_FC_MAX_2 = Math.round(FC_MAX * 0.97);
+            VMA_FC_MAX = 1 + AS5_FC_MAX_2;
+
+            SV1_FC_MAX_1 = Math.floor(FC_MAX * 0.75);
+            SV1_FC_MAX_2 = Math.round(FC_MAX * 0.80);
+            SV2_FC_MAX_1 = Math.floor(FC_MAX * 0.90);
+            SV2_FC_MAX_2 = Math.round(FC_MAX * 0.92);
+        }
+
+        let EF_FCR_1 = 0, EF_FCR_2 = 0, AS42_FCR_1 = 0, AS42_FCR_2 = 0;
+        let AS21_FCR_1 = 0, AS21_FCR_2 = 0, AS10_FCR_1 = 0, AS10_FCR_2 = 0;
+        let AS5_FCR_1 = 0, AS5_FCR_2 = 0, VMA_FCR_MAX = 0;
+        let SV1_FCR_1 = 0, SV1_FCR_2 = 0, SV2_FCR_1 = 0, SV2_FCR_2 = 0;
+
+        if (modeFC === 'fc_reserve' && FC_MAX > 0 && FC_REPOS > 0) {
+            const FC_RESERVE = FC_MAX - FC_REPOS;
+            EF_FCR_1 = Math.floor(FC_REPOS + (FC_RESERVE * 0.60));
+            EF_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.70));
+            AS42_FCR_1 = Math.round(FC_REPOS + (FC_RESERVE * 0.75));
+            AS42_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.82));
+            AS21_FCR_1 = 1 + AS42_FCR_2;
+            AS21_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.88));
+            AS10_FCR_1 = 1 + AS21_FCR_2;
+            AS10_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.93));
+            AS5_FCR_1 = 1 + AS10_FCR_2;
+            AS5_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.96));
+            VMA_FCR_MAX = 1 + AS5_FCR_2;
+
+            SV1_FCR_1 = Math.floor(FC_REPOS + (FC_RESERVE * 0.70));
+            SV1_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.75));
+            SV2_FCR_1 = Math.floor(FC_REPOS + (FC_RESERVE * 0.88));
+            SV2_FCR_2 = Math.round(FC_REPOS + (FC_RESERVE * 0.92));
+        }
+
+        function getFcTargetStr(fcMaxStr, fcResStr) {
+            if (modeFC === 'fc_max') return fcMaxStr;
+            if (modeFC === 'fc_reserve') return fcResStr;
+            return '';
+        }
+
+        // --- LIGNE 1 : ENDURANCE FONDAMENTALE (EF) ---
+        let l1_pct_val = 70;
+        if (IE_MOYEN === null) {
+            l1_pct_val = 70;
+        } else if (IE_MOYEN >= -5) {
+            l1_pct_val = 75;
+        } else if (IE_MOYEN >= -7) {
+            l1_pct_val = 73;
+        } else if (IE_MOYEN >= -9) {
+            l1_pct_val = 70;
+        } else if (IE_MOYEN >= -11) {
+            l1_pct_val = 68;
+        } else {
+            l1_pct_val = 65;
+        }
+
+        const l1_pct = `< ${l1_pct_val}%`;
+        let l1_pace = "--:--";
+        if (VMA_CALCUL > 0) {
+            const speed_l1 = VMA_CALCUL * (l1_pct_val / 100);
+            l1_pace = `< ${formatPacePaceMinSec(speed_l1)}`;
+        }
+        const l1_fc = getFcTargetStr(`${EF_FC_MAX_1} ~ ${EF_FC_MAX_2}`, `${EF_FCR_1} ~ ${EF_FCR_2}`);
+
+        let l2_pct = "", l2_pace = "", l2_fc = "";
+        const ie42_ref = (IE_21K !== null) ? IE_21K : IE_MOYEN;
+        if (IE_21K === null && IE_MOYEN === null) {
+            l2_pct = "70% - 80%"; l2_pace = formatPaceRange(80, 70);
+            l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+        } else if (ie42_ref >= -5) {
+            l2_pct = "84% - 87%"; l2_pace = formatPaceRange(87, 84);
+            l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+        } else if (ie42_ref < -5 && ie42_ref >= -11) {
+            let VMA_AS42 = 0;
+            if (ie42_ref >= -7) {
+                VMA_AS42 = 0.75 + ((0.84 - 0.75) * (ie42_ref + 7) / 2);
+            } else if (ie42_ref >= -9) {
+                VMA_AS42 = 0.67 + ((0.75 - 0.67) * (ie42_ref + 9) / 2);
+            } else {
+                VMA_AS42 = 0.62 + ((0.67 - 0.62) * (ie42_ref + 11) / 2);
+            }
+            const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS42);
+            l2_pct = `${minPct}% - ${maxPct}%`;
+            l2_pace = formatPaceRange(maxPct, minPct);
+            l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+        } else {
+            l2_pct = "non recommandé"; l2_pace = ""; l2_fc = "";
+        }
+
+        let l3_pct = "", l3_pace = "";
+        const ie21_ref = (IE_10K !== null) ? IE_10K : IE_MOYEN;
+        if (IE_10K === null && IE_MOYEN === null) {
+            l3_pct = "80% - 85%"; l3_pace = formatPaceRange(85, 80);
+        } else if (ie21_ref >= -5) {
+            l3_pct = "88% - 90%"; l3_pace = formatPaceRange(90, 88);
+        } else if (ie21_ref < -11) {
+            l3_pct = "63% - 68%"; l3_pace = formatPaceRange(68, 63);
+        } else {
+            let VMA_AS21 = 0;
+            if (ie21_ref >= -7) {
+                VMA_AS21 = 0.80 + ((0.88 - 0.80) * (ie21_ref + 7) / 2);
+            } else if (ie21_ref >= -9) {
+                VMA_AS21 = 0.74 + ((0.80 - 0.74) * (ie21_ref + 9) / 2);
+            } else {
+                VMA_AS21 = 0.68 + ((0.74 - 0.68) * (ie21_ref + 11) / 2);
+            }
+            const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS21);
+            l3_pct = `${minPct}% - ${maxPct}%`;
+            l3_pace = formatPaceRange(maxPct, minPct);
+        }
+        const l3_fc = getFcTargetStr(`${AS21_FC_MAX_1} ~ ${AS21_FC_MAX_2}`, `${AS21_FCR_1} ~ ${AS21_FCR_2}`);
+
+        let l4_pct = "", l4_pace = "";
+        const ie10_ref = (IE_5K !== null) ? IE_5K : IE_MOYEN;
+        if (IE_5K === null && IE_MOYEN === null) {
+            l4_pct = "85% - 90%"; l4_pace = formatPaceRange(90, 85);
+        } else if (ie10_ref >= -5) {
+            l4_pct = "91% - 93%"; l4_pace = formatPaceRange(93, 91);
+        } else if (ie10_ref < -11) {
+            l4_pct = "74% - 78%"; l4_pace = formatPaceRange(78, 74);
+        } else {
+            let VMA_AS10 = 0;
+            if (ie10_ref >= -7) {
+                VMA_AS10 = 0.86 + ((0.91 - 0.86) * (ie10_ref + 7) / 2);
+            } else if (ie10_ref >= -9) {
+                VMA_AS10 = 0.83 + ((0.86 - 0.83) * (ie10_ref + 9) / 2);
+            } else {
+                VMA_AS10 = 0.78 + ((0.83 - 0.78) * (ie10_ref + 11) / 2);
+            }
+            const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS10);
+            l4_pct = `${minPct}% - ${maxPct}%`;
+            l4_pace = formatPaceRange(maxPct, minPct);
+        }
+        const l4_fc = getFcTargetStr(`${AS10_FC_MAX_1} ~ ${AS10_FC_MAX_2}`, `${AS10_FCR_1} ~ ${AS10_FCR_2}`);
+
+        let l5_pct = "", l5_pace = "";
+        if (VMA_CALCUL < 12) {
+            l5_pct = "78% - 82%"; l5_pace = formatPaceRange(82, 78);
+        } else if (VMA_CALCUL >= 23) {
+            l5_pct = "92% - 96%"; l5_pace = formatPaceRange(96, 92);
+        } else {
+            let VMA_AS5 = 0;
+            if (VMA_CALCUL < 15) {
+                VMA_AS5 = 0.80 + ((0.87 - 0.80) * (VMA_CALCUL - 12) / 3);
+            } else if (VMA_CALCUL < 18) {
+                VMA_AS5 = 0.87 + ((0.90 - 0.87) * (VMA_CALCUL - 15) / 3);
+            } else {
+                VMA_AS5 = 0.90 + ((0.94 - 0.90) * (VMA_CALCUL - 18) / 5);
+            }
+            const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS5);
+            l5_pct = `${minPct}% - ${maxPct}%`;
+            l5_pace = formatPaceRange(maxPct, minPct);
+        }
+        const l5_fc = getFcTargetStr(`${AS5_FC_MAX_1} ~ ${AS5_FC_MAX_2}`, `${AS5_FCR_1} ~ ${AS5_FCR_2}`);
+
+        const vma_fc_val = getFcTargetStr(`> ${VMA_FC_MAX}`, `> ${VMA_FCR_MAX}`);
+
+        let l11_pct = "", l11_pace = "";
+        if (IE_MOYEN === null) {
+            l11_pct = "73% - 75%"; l11_pace = formatPaceRange(75, 73);
+        } else if (IE_MOYEN >= -5) {
+            l11_pct = "78% - 82%"; l11_pace = formatPaceRange(82, 78);
+        } else if (IE_MOYEN >= -7) {
+            l11_pct = "75% - 78%"; l11_pace = formatPaceRange(78, 75);
+        } else if (IE_MOYEN >= -9) {
+            l11_pct = "73% - 75%"; l11_pace = formatPaceRange(75, 73);
+        } else if (IE_MOYEN >= -11) {
+            l11_pct = "70% - 73%"; l11_pace = formatPaceRange(73, 70);
+        } else {
+            l11_pct = "65% - 70%"; l11_pace = formatPaceRange(70, 65);
+        }
+        const l11_fc = getFcTargetStr(`${SV1_FC_MAX_1} ~ ${SV1_FC_MAX_2}`, `${SV1_FCR_1} ~ ${SV1_FCR_2}`);
+
+        let l12_pct = "", l12_pace = "";
+        if (IE_MOYEN === null) {
+            l12_pct = "85% - 88%"; l12_pace = formatPaceRange(88, 85);
+        } else if (IE_MOYEN >= -5) {
+            l12_pct = "88% - 91%"; l12_pace = formatPaceRange(91, 88);
+        } else if (IE_MOYEN >= -7) {
+            l12_pct = "86% - 89%"; l12_pace = formatPaceRange(89, 86);
+        } else if (IE_MOYEN >= -9) {
+            l12_pct = "84% - 86%"; l12_pace = formatPaceRange(86, 84);
+        } else if (IE_MOYEN >= -11) {
+            l12_pct = "82% - 84%"; l12_pace = formatPaceRange(84, 82);
+        } else {
+            l12_pct = "80% - 82%"; l12_pace = formatPaceRange(82, 80);
+        }
+        const l12_fc = getFcTargetStr(`${SV2_FC_MAX_1} ~ ${SV2_FC_MAX_2}`, `${SV2_FCR_1} ~ ${SV2_FCR_2}`);
+
+        const colSpanTotal = (modeFC !== 'none') ? 5 : 4;
+
+        function buildRow(col1, colorKey, col2Text, col3, col4, col5Val) {
+            const badgeClass = `bg-${colorKey}`;
+            const textClass = `text-${colorKey}`;
+            let html = `<tr>
+                <td class="text-left"><strong>${col1}</strong></td>
+                <td class="text-left"><span class="${textClass}">${col2Text}</span></td>
+                <td><strong>${col3}</strong></td>
+                <td>${col4 ? `<span class="${badgeClass}">${col4}</span>` : ''}</td>`;
+            if (modeFC !== 'none') {
+                html += `<td><strong>${col5Val}</strong></td>`;
+            }
+            html += `</tr>`;
+            return html;
+        }
+
+        let rowsHtml = "";
+        rowsHtml += buildRow("Endurance fondamentale (EF)", "vert", "Footing de récupération, Sortie longue", l1_pct, l1_pace, l1_fc);
+        rowsHtml += buildRow("AS42", "bleu", "Allure spécifique Marathon", l2_pct, l2_pace, l2_fc);
+        rowsHtml += buildRow("AS21", "orange", "Allure spécifique Semi-Marathon", l3_pct, l3_pace, l3_fc);
+        rowsHtml += buildRow("AS10", "orange", "Allure spécifique 10 kilomètres", l4_pct, l4_pace, l4_fc);
+        rowsHtml += buildRow("AS5", "rouge", "Allure spécifique 5 kilomètres", l5_pct, l5_pace, l5_fc);
+
+        rowsHtml += `<tr><td colspan="${colSpanTotal}" class="row-seuil-header">Allure VMA (voir détail des allures au tableau suivant)</td></tr>`;
+
+        // VMA LONGUE
+        rowsHtml += `<tr>
+            <td class="text-left"><strong>VMA Longue</strong></td>
+            <td class="text-left"><span class="text-rouge">Durée d’effort comprise entre 2’ et 4’</span></td>
+            <td><strong>90% - 95%</strong></td>
+            <td><span class="bg-rouge">${formatPaceRange(100, 95)}</span></td>`;
+        if (modeFC !== 'none') {
+            rowsHtml += `<td rowspan="3" style="vertical-align: middle;"><strong>${vma_fc_val}</strong></td>`;
+        }
+        rowsHtml += `</tr>`;
+
+        // VMA MOYENNE
+        rowsHtml += `<tr>
+            <td class="text-left"><strong>VMA Moyenne</strong></td>
+            <td class="text-left"><span class="text-bordeaux">Durée d’effort comprise entre 1’10 et 2’30</span></td>
+            <td><strong>95% - 100%</strong></td>
+            <td><span class="bg-bordeaux">${formatPaceRange(100, 95)}</span></td>
+        </tr>`;
+
+        // VMA COURTE
+        rowsHtml += `<tr>
+            <td class="text-left"><strong>VMA Courte</strong></td>
+            <td class="text-left"><span class="text-noir">Durée d’effort inférieure à 1’</span></td>
+            <td><strong>100% - 110%</strong></td>
+            <td><span class="bg-noir">${formatPaceRange(110, 100)}</span></td>
+        </tr>`;
+
+        rowsHtml += `<tr><td colspan="${colSpanTotal}" class="row-seuil-header">Allure SEUIL</td></tr>`;
+
+        rowsHtml += buildRow("SV1", "vert", "Seuil Aérobie, Tempo", l11_pct, l11_pace, l11_fc);
+        rowsHtml += buildRow("SV2", "orange", "Seuil Anaérobie, Résistance", l12_pct, l12_pace, l12_fc);
+
+        tblZonesBody.innerHTML = rowsHtml;
+    }
+
+    // --- TABLEAU DES ALLURES À VMA ---
+    function renderIntervalsTable() {
+        if (VMA_CALCUL <= 0) {
+            tblIntervalsHead.innerHTML = '';
+            tblIntervalsBody.innerHTML = '<tr><td style="color: var(--text-muted); font-style: italic;">Veuillez renseigner votre VMA pour afficher les allures d\'intervalles.</td></tr>';
+            return;
+        }
+
+        const ALL_TRACK_DISTANCES = [100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500];
+
+        function getSupportDurationSeconds(p) {
+            if (p <= 95) {
+                return 240 - (p - 90) * 24;
+            } else if (p <= 100) {
+                return 110 - (p - 96) * 10;
+            } else {
+                return 60 - (p - 101) * 5;
+            }
+        }
+
+        const selectedRows = [];
+
+        ALL_TRACK_DISTANCES.forEach(d => {
+            let bestPct = null;
+            let minDiff = Infinity;
+
+            for (let p = 90; p <= 110; p++) {
+                const dur = getSupportDurationSeconds(p);
+                const speed = VMA_CALCUL * (p / 100);
+                const distRaw = speed * (dur / 3.6);
+                const distFloor = Math.floor(distRaw / 100) * 100;
+
+                if (distFloor === d) {
+                    const diff = Math.abs(distRaw - d);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        bestPct = p;
+                    }
+                }
+            }
+
+            if (bestPct !== null) {
+                const speed = VMA_CALCUL * (bestPct / 100);
+                const timeForDistSec = (d * 3.6) / speed;
+                if (timeForDistSec <= 240) {
+                    selectedRows.push({
+                        dist: d,
+                        pct: bestPct,
+                        speed: speed
+                    });
+                }
+            }
+        });
+
+        if (selectedRows.length === 0) {
+            tblIntervalsHead.innerHTML = '';
+            tblIntervalsBody.innerHTML = '<tr><td style="color: var(--text-muted); font-style: italic;">Aucun intervalle disponible pour cette VMA.</td></tr>';
+            return;
+        }
+
+        const maxDist = Math.max(...selectedRows.map(r => r.dist));
+        const activeSplits = ALL_TRACK_DISTANCES.filter(d => d <= maxDist);
+
+        let headHtml = `
+            <tr>
+                <th rowspan="2" style="vertical-align: middle;">Distance Intervalle</th>
+                <th rowspan="2" style="vertical-align: middle;">Allure moyenne</th>
+                <th colspan="${activeSplits.length}" style="text-align: center;">Temps de passage</th>
+            </tr>
+            <tr>
+                ${activeSplits.map(s => `<th>${s}m</th>`).join('')}
+            </tr>
+        `;
+        tblIntervalsHead.innerHTML = headHtml;
+
+        let bodyHtml = '';
+        selectedRows.forEach(row => {
+            const paceStr = formatPacePaceMinSec(row.speed);
+            
+            let rowHtml = `<tr>`;
+            rowHtml += `<td><strong>${row.dist}m</strong></td>`;
+            rowHtml += `<td><strong>${paceStr}</strong></td>`;
+
+            activeSplits.forEach(sDist => {
+                if (sDist < row.dist) {
+                    const splitSec = (sDist * 3.6) / row.speed;
+                    rowHtml += `<td>${formatSplitTime(splitSec)}</td>`;
+                } else if (sDist === row.dist) {
+                    const totalSec = (row.dist * 3.6) / row.speed;
+                    let badgeClass = 'bg-rouge';
+                    if (row.pct >= 100) {
+                        badgeClass = 'bg-noir';
+                    } else if (row.pct > 95) {
+                        badgeClass = 'bg-bordeaux';
+                    }
+                    rowHtml += `<td><span class="${badgeClass}">${formatSplitTime(totalSec)}</span></td>`;
+                } else {
+                    rowHtml += `<td>-</td>`;
+                }
+            });
+
+            rowHtml += `</tr>`;
+            bodyHtml += rowHtml;
+        });
+
+        tblIntervalsBody.innerHTML = bodyHtml;
+    }
+
+    // --- CALCULATEUR D'INTERVALLES SUR MESURE ---
+    function getCourseDistanceKm() {
+        const val = customCourseSelect.value;
+        if (val === '5k') return 5.0;
+        if (val === '10k') return 10.0;
+        if (val === 'semi') return 21.0975;
+        if (val === 'marathon') return 42.195;
+        return 10.0;
+    }
+
+    function updateCourseLabel() {
+        const text = customCourseSelect.options[customCourseSelect.selectedIndex].text;
+        pctLabelTitle.textContent = `% de mon allure ${text} :`;
+    }
+
+    function computeCustomFromChrono() {
+        const dist = getCourseDistanceKm();
+        const hh = parseFloat(customChronoHh.value) || 0;
+        const mm = parseFloat(customChronoMm.value) || 0;
+        const ss = parseFloat(customChronoSs.value) || 0;
+
+        const totalSeconds = (hh * 3600) + (mm * 60) + ss;
+        if (totalSeconds > 0 && dist > 0) {
+            const paceSec = totalSeconds / dist;
+            let paceMm = Math.floor(paceSec / 60);
+            let paceSs = Math.round(paceSec % 60);
+            if (paceSs >= 60) { paceMm += 1; paceSs = 0; }
+
+            customPaceMm.value = paceMm;
+            customPaceSs.value = paceSs;
+
+            currentBaseSpeedKmH = dist / (totalSeconds / 3600);
+            customSpeedDisplay.textContent = `Vitesse correspondante : ${currentBaseSpeedKmH.toFixed(2)} km/h`;
+        } else {
+            customPaceMm.value = '';
+            customPaceSs.value = '';
+            currentBaseSpeedKmH = 0;
+            customSpeedDisplay.textContent = 'Vitesse correspondante : -- km/h';
+        }
+        updateCustomIntervalResults();
+    }
+
+    function computeCustomFromPace() {
+        const dist = getCourseDistanceKm();
+        const mm = parseFloat(customPaceMm.value) || 0;
+        const ss = parseFloat(customPaceSs.value) || 0;
+
+        const paceSec = (mm * 60) + ss;
+        if (paceSec > 0 && dist > 0) {
+            const totalSeconds = paceSec * dist;
+            let hh = Math.floor(totalSeconds / 3600);
+            let remSec = totalSeconds % 3600;
+            let mmVal = Math.floor(remSec / 60);
+            let ssVal = Math.round(remSec % 60);
+            if (ssVal >= 60) { mmVal += 1; ssVal = 0; }
+            if (mmVal >= 60) { hh += 1; mmVal = 0; }
+
+            customChronoHh.value = hh;
+            customChronoMm.value = mmVal;
+            customChronoSs.value = ssVal;
+
+            currentBaseSpeedKmH = 3600 / paceSec;
+            customSpeedDisplay.textContent = `Vitesse correspondante : ${currentBaseSpeedKmH.toFixed(2)} km/h`;
+        } else {
+            customChronoHh.value = '';
+            customChronoMm.value = '';
+            customChronoSs.value = '';
+            currentBaseSpeedKmH = 0;
+            customSpeedDisplay.textContent = 'Vitesse correspondante : -- km/h';
+        }
+        updateCustomIntervalResults();
+    }
+
+    function updateCustomIntervalResults() {
+        const pctVal = parseFloat(customPctSelect.value);
+        if (isNaN(pctVal) || currentBaseSpeedKmH <= 0) {
+            customResPace.textContent = '--:--';
+            customResEst.textContent = '--';
+            return;
+        }
+
+        const targetSpeedKmH = currentBaseSpeedKmH * (pctVal / 100);
+        customResPace.textContent = formatPacePaceMinSec(targetSpeedKmH) + '"/km';
+
+        const type = customIntervalType.value;
+        if (type === 'duree') {
+            customResEstLabel.textContent = 'Distance estimée';
+            const durMm = parseFloat(interDureeMm.value) || 0;
+            const durSs = parseFloat(interDureeSs.value) || 0;
+            const durTotalSec = (durMm * 60) + durSs;
+
+            if (durTotalSec > 0) {
+                const distMeters = Math.round(durTotalSec * (targetSpeedKmH / 3.6));
+                customResEst.textContent = `${distMeters} m`;
+            } else {
+                customResEst.textContent = '-- m';
+            }
+        } else {
+            customResEstLabel.textContent = 'Durée estimée';
+            const distM = parseFloat(interDistM.value) || 0;
+            if (distM > 0) {
+                const durSec = (distM * 3.6) / targetSpeedKmH;
+                customResEst.textContent = formatSplitTime(durSec);
+            } else {
+                customResEst.textContent = '--:--';
+            }
+        }
+    }
+
+    // --- ÉVÉNEMENTS ---
+    vmaInput.addEventListener('input', () => {
+        if (vmaInput.value.trim() !== "") {
+            chkUnkVma.checked = false;
+            estimationSection.style.display = 'none';
+        }
+    });
+
+    chkUnkVma.addEventListener('change', () => {
+        if (chkUnkVma.checked) {
+            estimationSection.style.display = 'block';
+            updateEstimationPreview();
+        } else {
+            estimationSection.style.display = 'none';
+        }
+    });
+
+    raceSelect.addEventListener('change', updateEstimationPreview);
+
+    refInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateEstimationPreview);
+    });
+
+    btnCalculate.addEventListener('click', () => {
+        computeVmaCalcul();
+        computeIEValues();
+
+        section1.style.display = 'none';
+
+        summaryVmaText.textContent = VMA_CALCUL > 0 ? `VMA = ${VMA_CALCUL.toFixed(1)} km/h` : `VMA = Non renseignée`;
+        summaryBar.style.display = 'flex';
+
+        renderIETable();
+        renderZonesTable();
+        renderIntervalsTable();
+        resultsContainer.style.display = 'block';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    btnEdit.addEventListener('click', () => {
+        section1.style.display = 'block';
+        summaryBar.style.display = 'none';
+        resultsContainer.style.display = 'none';
+    });
+
+    // ÉVÉNEMENTS INTERVALLES SUR MESURE
+    customCourseSelect.addEventListener('change', () => {
+        updateCourseLabel();
+        if (customChronoMm.value || customChronoHh.value || customChronoSs.value) {
+            computeCustomFromChrono();
+        } else if (customPaceMm.value || customPaceSs.value) {
+            computeCustomFromPace();
+        }
+    });
+
+    [customChronoHh, customChronoMm, customChronoSs].forEach(el => {
+        el.addEventListener('input', computeCustomFromChrono);
+    });
+
+    [customPaceMm, customPaceSs].forEach(el => {
+        el.addEventListener('input', computeCustomFromPace);
+    });
+
+    customIntervalType.addEventListener('change', () => {
+        if (customIntervalType.value === 'duree') {
+            groupIntervalDuree.style.display = 'block';
+            groupIntervalDistance.style.display = 'none';
+        } else {
+            groupIntervalDuree.style.display = 'none';
+            groupIntervalDistance.style.display = 'block';
+        }
+        updateCustomIntervalResults();
+    });
+
+    [interDureeMm, interDureeSs, interDistM, customPctSelect].forEach(el => {
+        el.addEventListener('input', updateCustomIntervalResults);
+        el.addEventListener('change', updateCustomIntervalResults);
+    });
+
+    // INITIALISATION
+    updateFcFieldsVisibility();
+    updateEstimationPreview();
+    updateCourseLabel();
+</script>
+</body>
+</html>
