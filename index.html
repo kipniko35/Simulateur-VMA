@@ -438,6 +438,21 @@
         <!-- BLOC 2 : MES CHRONOS DE RÉFÉRENCE -->
         <div class="block-section">
             <div class="block-title">Bloc 2 : Mes chronos de référence (chronos significatifs avec ma forme actuelle)</div>
+            
+            <div style="background-color: #fffbe0; border-left: 4px solid #f59e0b; padding: 10px 12px; margin-bottom: 15px; border-radius: 0 6px 6px 0; font-size: 0.9rem; color: #1e293b;">
+                <p style="margin-bottom: 6px;"><strong>💡 Bien choisir mes chronos de référence ?</strong></p>
+                <p style="margin-bottom: 8px;">Pour obtenir des zones d'entraînement précises et un Indice d'Endurance (IE) fiable, saisir uniquement des chronos :</p>
+                <ul style="margin-left: 20px; margin-bottom: 8px;">
+                    <li><strong>Récents</strong> (réalisés au cours des 24 derniers mois) ou <strong>conforme</strong> à mon niveau de forme actuel</li>
+                    <li><strong>Optimaux</strong> (réalisés au maximum de mes capacités, lors d'une course préparée).</li>
+                </ul>
+                <p style="margin-bottom: 4px;">⚠️ J'évite de renseigner (et je laisse le champ vide) :</p>
+                <ul style="margin-left: 20px;">
+                    <li>les records anciens</li>
+                    <li>les courses réalisées « en dedans ».</li>
+                </ul>
+            </div>
+
             <div class="ref-grid">
                 <div class="ref-row">
                     <span class="ref-label">5 kms :</span>
@@ -1226,14 +1241,18 @@
         }
         const l1_fc = getFcTargetStr(`${EF_FC_MAX_1} ~ ${EF_FC_MAX_2}`, `${EF_FCR_1} ~ ${EF_FCR_2}`);
 
+        // --- LIGNE 2 : AS42 ---
         let l2_pct = "", l2_pace = "", l2_fc = "";
+        let VMA_AS42_FINAL = 0.75;
         const ie42_ref = (IE_21K !== null) ? IE_21K : IE_MOYEN;
         if (IE_21K === null && IE_MOYEN === null) {
             l2_pct = "70% - 80%"; l2_pace = formatPaceRange(80, 70);
             l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+            VMA_AS42_FINAL = 0.75;
         } else if (ie42_ref >= -5) {
             l2_pct = "84% - 87%"; l2_pace = formatPaceRange(87, 84);
             l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+            VMA_AS42_FINAL = 0.855;
         } else if (ie42_ref < -5 && ie42_ref >= -11) {
             let VMA_AS42 = 0;
             if (ie42_ref >= -7) {
@@ -1247,56 +1266,123 @@
             l2_pct = `${minPct}% - ${maxPct}%`;
             l2_pace = formatPaceRange(maxPct, minPct);
             l2_fc = getFcTargetStr(`${AS42_FC_MAX_1} ~ ${AS42_FC_MAX_2}`, `${AS42_FCR_1} ~ ${AS42_FCR_2}`);
+            VMA_AS42_FINAL = VMA_AS42;
         } else {
             l2_pct = "non recommandé"; l2_pace = ""; l2_fc = "";
+            VMA_AS42_FINAL = 0.60;
+        }
+
+        // --- LIGNE 3 : AS21 ---
+        let eff_IE_10K = IE_10K;
+        let eff_IE_MOYEN_21 = IE_MOYEN;
+
+        function getRawVmaAs21(ieVal) {
+            if (ieVal >= -5) return 0.89;
+            if (ieVal < -11) return 0.655;
+            if (ieVal >= -7) {
+                return 0.80 + ((0.88 - 0.80) * (ieVal + 7) / 2);
+            } else if (ieVal >= -9) {
+                return 0.74 + ((0.80 - 0.74) * (ieVal + 9) / 2);
+            } else {
+                return 0.68 + ((0.74 - 0.68) * (ieVal + 11) / 2);
+            }
+        }
+
+        if (eff_IE_10K !== null) {
+            let candidate_vma_as21 = getRawVmaAs21(eff_IE_10K);
+            if (candidate_vma_as21 <= VMA_AS42_FINAL) {
+                eff_IE_10K = null; // Rejeté, fallback sur IE_MOYEN
+            }
+        }
+
+        if (eff_IE_10K === null && eff_IE_MOYEN_21 !== null) {
+            let candidate_vma_as21 = getRawVmaAs21(eff_IE_MOYEN_21);
+            if (candidate_vma_as21 <= VMA_AS42_FINAL) {
+                eff_IE_MOYEN_21 = null; // Rejeté, considéré comme INCONNU
+            }
         }
 
         let l3_pct = "", l3_pace = "";
-        const ie21_ref = (IE_10K !== null) ? IE_10K : IE_MOYEN;
-        if (IE_10K === null && IE_MOYEN === null) {
-            l3_pct = "80% - 85%"; l3_pace = formatPaceRange(85, 80);
-        } else if (ie21_ref >= -5) {
-            l3_pct = "88% - 90%"; l3_pace = formatPaceRange(90, 88);
-        } else if (ie21_ref < -11) {
-            l3_pct = "63% - 68%"; l3_pace = formatPaceRange(68, 63);
+        let VMA_AS21_FINAL = 0.825;
+        const active_ie_21 = (eff_IE_10K !== null) ? eff_IE_10K : eff_IE_MOYEN_21;
+
+        if (active_ie_21 === null) {
+            l3_pct = "80% - 85%";
+            l3_pace = formatPaceRange(85, 80);
+            VMA_AS21_FINAL = 0.825;
+        } else if (active_ie_21 >= -5) {
+            l3_pct = "88% - 90%";
+            l3_pace = formatPaceRange(90, 88);
+            VMA_AS21_FINAL = 0.89;
+        } else if (active_ie_21 < -11) {
+            l3_pct = "63% - 68%";
+            l3_pace = formatPaceRange(68, 63);
+            VMA_AS21_FINAL = 0.655;
         } else {
-            let VMA_AS21 = 0;
-            if (ie21_ref >= -7) {
-                VMA_AS21 = 0.80 + ((0.88 - 0.80) * (ie21_ref + 7) / 2);
-            } else if (ie21_ref >= -9) {
-                VMA_AS21 = 0.74 + ((0.80 - 0.74) * (ie21_ref + 9) / 2);
-            } else {
-                VMA_AS21 = 0.68 + ((0.74 - 0.68) * (ie21_ref + 11) / 2);
-            }
+            let VMA_AS21 = getRawVmaAs21(active_ie_21);
             const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS21);
             l3_pct = `${minPct}% - ${maxPct}%`;
             l3_pace = formatPaceRange(maxPct, minPct);
+            VMA_AS21_FINAL = VMA_AS21;
         }
         const l3_fc = getFcTargetStr(`${AS21_FC_MAX_1} ~ ${AS21_FC_MAX_2}`, `${AS21_FCR_1} ~ ${AS21_FCR_2}`);
 
-        let l4_pct = "", l4_pace = "";
-        const ie10_ref = (IE_5K !== null) ? IE_5K : IE_MOYEN;
-        if (IE_5K === null && IE_MOYEN === null) {
-            l4_pct = "85% - 90%"; l4_pace = formatPaceRange(90, 85);
-        } else if (ie10_ref >= -5) {
-            l4_pct = "91% - 93%"; l4_pace = formatPaceRange(93, 91);
-        } else if (ie10_ref < -11) {
-            l4_pct = "74% - 78%"; l4_pace = formatPaceRange(78, 74);
-        } else {
-            let VMA_AS10 = 0;
-            if (ie10_ref >= -7) {
-                VMA_AS10 = 0.86 + ((0.91 - 0.86) * (ie10_ref + 7) / 2);
-            } else if (ie10_ref >= -9) {
-                VMA_AS10 = 0.83 + ((0.86 - 0.83) * (ie10_ref + 9) / 2);
+        // --- LIGNE 4 : AS10 ---
+        let eff_IE_5K = IE_5K;
+        let eff_IE_MOYEN_10 = IE_MOYEN;
+
+        function getRawVmaAs10(ieVal) {
+            if (ieVal >= -5) return 0.92;
+            if (ieVal < -11) return 0.76;
+            if (ieVal >= -7) {
+                return 0.86 + ((0.91 - 0.86) * (ieVal + 7) / 2);
+            } else if (ieVal >= -9) {
+                return 0.83 + ((0.86 - 0.83) * (ieVal + 9) / 2);
             } else {
-                VMA_AS10 = 0.78 + ((0.83 - 0.78) * (ie10_ref + 11) / 2);
+                return 0.78 + ((0.83 - 0.78) * (ieVal + 11) / 2);
             }
+        }
+
+        if (eff_IE_5K !== null) {
+            let candidate_vma_as10 = getRawVmaAs10(eff_IE_5K);
+            if (candidate_vma_as10 <= VMA_AS21_FINAL) {
+                eff_IE_5K = null; // Rejeté, fallback sur IE_MOYEN
+            }
+        }
+
+        if (eff_IE_5K === null && eff_IE_MOYEN_10 !== null) {
+            let candidate_vma_as10 = getRawVmaAs10(eff_IE_MOYEN_10);
+            if (candidate_vma_as10 <= VMA_AS21_FINAL) {
+                eff_IE_MOYEN_10 = null; // Rejeté, considéré comme INCONNU
+            }
+        }
+
+        let l4_pct = "", l4_pace = "";
+        let VMA_AS10_FINAL = 0.875;
+        const active_ie_10 = (eff_IE_5K !== null) ? eff_IE_5K : eff_IE_MOYEN_10;
+
+        if (active_ie_10 === null) {
+            l4_pct = "85% - 90%";
+            l4_pace = formatPaceRange(90, 85);
+            VMA_AS10_FINAL = 0.875;
+        } else if (active_ie_10 >= -5) {
+            l4_pct = "91% - 93%";
+            l4_pace = formatPaceRange(93, 91);
+            VMA_AS10_FINAL = 0.92;
+        } else if (active_ie_10 < -11) {
+            l4_pct = "74% - 78%";
+            l4_pace = formatPaceRange(78, 74);
+            VMA_AS10_FINAL = 0.76;
+        } else {
+            let VMA_AS10 = getRawVmaAs10(active_ie_10);
             const { minPct, maxPct } = calcMinMaxFromPct(VMA_AS10);
             l4_pct = `${minPct}% - ${maxPct}%`;
             l4_pace = formatPaceRange(maxPct, minPct);
+            VMA_AS10_FINAL = VMA_AS10;
         }
         const l4_fc = getFcTargetStr(`${AS10_FC_MAX_1} ~ ${AS10_FC_MAX_2}`, `${AS10_FCR_1} ~ ${AS10_FCR_2}`);
 
+        // --- LIGNE 5 : AS5 ---
         let l5_pct = "", l5_pace = "";
         if (VMA_CALCUL < 12) {
             l5_pct = "78% - 82%"; l5_pace = formatPaceRange(82, 78);
@@ -1486,7 +1572,6 @@
             }
 
             let chosenMatch = null;
-            // Gestion du conflit pour débutant : priorité stricte à la VMA Longue (85-90%)
             if (DEBUTANT_VMA && longZoneMatches.length > 0) {
                 longZoneMatches.sort((a, b) => a.diff - b.diff);
                 chosenMatch = longZoneMatches[0];
